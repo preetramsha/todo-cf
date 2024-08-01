@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1722515604598,
+      "tag": "0000_wild_la_nuit",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1722517492580,
+      "tag": "0001_daffy_kingpin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1722517644086,
+      "tag": "0002_long_thunderbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1722517727927,
+      "tag": "0003_bright_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1722517794499,
+      "tag": "0004_unique_mattie_franklin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1722517847802,
+      "tag": "0005_futuristic_jack_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1722518239391,
+      "tag": "0006_striped_payback",
+      "breakpoints": true
+    }
+  ]
+}

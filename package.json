@@ -1,0 +1,21 @@
+{
+  "name": "todo-cf",
+  "type": "module",
+  "scripts": {
+    "dbgen": "drizzle-kit generate",
+    "dbup": "drizzle-kit up",
+    "dev": "wrangler dev app.js",
+    "deploy": "wrangler deploy --minify app.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.8.0",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.32.1",
+    "hono": "^4.5.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240529.0",
+    "drizzle-kit": "^0.23.1",
+    "wrangler": "^3.57.2"
+  }
+}
