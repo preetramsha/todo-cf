@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { todos, user } from './db/schema.js';
 import bcrypt from "bcryptjs";
-import { eq } from 'drizzle-orm';
+import { eq,and } from 'drizzle-orm';
 
 const insertUser = async (c,username,pass) => {
     try{
@@ -10,7 +10,7 @@ const insertUser = async (c,username,pass) => {
             return false;
         }
         const db = drizzle(c.env.DB);
-        var hash = bcrypt.hashSync(pass, 8);
+        const hash = bcrypt.hashSync(pass, 8);
         const usr = await db.insert(user).values({username:username,password:hash}).returning();
         await c.env.kv.put(username, true);
         if (!usr) return false;
@@ -42,11 +42,12 @@ const isUsernameAvailable = async (c,username) => {
     }
 }
 
-const insertTodo = async (c,username,desc) => {
+const insertTodo = async (c,username,des) => {
     try {
         const db = drizzle(c.env.DB);
         const uid = await db.select({id:user.id}).from(user).where(eq(user.username,username)).limit(1);
-        const todo = await db.insert(todos).values({desc,user_id:uid[0].id}).returning();
+        if(!uid) return false;
+        const todo = await db.insert(todos).values({desc:des,user_id:uid[0].id}).returning();
         if (!todo) return false;
         return true;
     } catch (e) {
@@ -57,9 +58,9 @@ const getTodos = async (c,username) => {
     try {
         const db = drizzle(c.env.DB);
         const uid = await db.select({id:user.id}).from(user).where(eq(user.username,username)).limit(1);
-        const todos = await db.select().from(todos).where(eq(user.id,uid[0].id)).limit(1);
-        if(!todos) return false;
-        return todos;
+        const res = await db.select().from(todos).where(eq(todos.user_id,uid[0].id));
+        if(!res) return false;
+        return res;
     } catch (e) {
         console.log("err getTodos:"+e);
     }
@@ -87,13 +88,14 @@ const updTodo = async (c,username,desc,todoid) => {
     }
 }
 
-const deleteUser = async (username,password) => {
+const deleteUser = async (c,username,password) => {
     try {
         const db = drizzle(c.env.DB);
-        const pass = db.select({pass:user.password}).from(user).where(eq(user.username,username)).limit(1);
+        const pass = await db.select({pass:user.password}).from(user).where(eq(user.username,username)).limit(1);
+        if(pass.length<1) return false;
         const cmppass = bcrypt.compare(password,pass[0].pass);
         if(!cmppass) return false;
-        const delusr = db.delete(user).where(eq(user.username)).limit(1).returning();
+        const delusr = await db.delete(user).where(eq(user.username,username)).returning()
         if(!delusr) return false;
         return true;
     } catch (e) {

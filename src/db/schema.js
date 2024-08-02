@@ -13,7 +13,7 @@ const todos = sqliteTable('todos',{
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     desc: text('desc').notNull(),
     created_at: text('created_at').notNull().default(sql`(current_timestamp)`),
-    completed: integer('completed',{mode:'boolean'}).$default(0),
+    completed: integer('completed',{mode:'boolean'}).$defaultFn(() => 0),
     user_id: text('user_id').notNull().references(()=> user.id , { onDelete: 'cascade' })
 })
 
