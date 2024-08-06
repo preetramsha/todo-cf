@@ -25,10 +25,11 @@ const insertUser = async (c,username,pass) => {
 const validateUser = async (c,username,pass) => {
     try{
         const db = drizzle(c.env.DB);
-        const usr = await db.select({pass:user.password}).from(user).where(eq(user.username,username)).limit(1);
+        const usr = await db.select({id:user.id,username:user.username,pass:user.password}).from(user).where(eq(user.username,username)).limit(1);
         if(usr.length<1) return false;
         const ok = await bcrypt.compare(pass,usr[0].pass);
         if(!ok) return false;
+        console.log("user:",usr[0]);
         return {
             ok,
             data:{

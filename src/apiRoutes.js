@@ -62,6 +62,7 @@ api.post('/login',async (c) => {
   const {username, password} = await c.req.json();
   if(!username||!password) c.json({ok:false},422);
   const res = await validateUser(c,username,password);
+  console.log('res:',res);
   if(!res.ok) return c.json({ok:false},401);
   const token = await jwt.sign( res.data , c.env.jwtoken, { expiresIn: '1h' });
   if(!token) return c.json({ok:false},401);
