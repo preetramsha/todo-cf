@@ -46,12 +46,11 @@ api.delete('/user',async (c) => {
 api.get('validatetoken',async (c) => {
   const token = getCookie(c,'token');
   if (!token) return  c.json({ ok:false, message: 'token not found' }, 401);
-  console.log('token',token);
   try {
     const user = await jwt.verify(token, c.env.jwtoken);
     const data = jwt.decode(token)
     if (!user) return  c.json({ ok:false, message: 'Invalid token' }, 401);
-    return c.json({ ok:true, data });
+    return c.json({ ok:true, data:data.payload });
   } catch (error) {
     return c.json({ ok:false, message: 'Server Side Error',error }, 500);
   }
