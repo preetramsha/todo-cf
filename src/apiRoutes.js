@@ -10,7 +10,9 @@ import {
   deleteUser
 } from './dbconfig.js';
 import {
-  setCookie
+  getCookie,
+  setCookie,
+  deleteCookie
 } from 'hono/cookie'
 import jwt from '@tsndr/cloudflare-worker-jwt';
 
@@ -40,24 +42,23 @@ api.delete('/user',async (c) => {
   return c.json({ok:true, data:res});
 });
 
-//use as a middlewear
+//also use as a middlewear
 api.get('validatetoken',async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader) {
-    return c.json({ message: 'Authorization header missing' }, 401);
-  }
-  const token = authHeader.split(' ')[1];
+  const token = getCookie(c,'token');
+  if (!token) return  c.json({ ok:false, message: 'token not found' }, 401);
+  console.log('token',token);
   try {
     const user = await jwt.verify(token, c.env.jwtoken);
+    const data = jwt.decode(token)
     if (!user) return  c.json({ ok:false, message: 'Invalid token' }, 401);
-    return c.json({ ok:true });
+    return c.json({ ok:true, data });
   } catch (error) {
-    return c.json({ ok:false, message: 'Server Side Error' }, 500);
+    return c.json({ ok:false, message: 'Server Side Error',error }, 500);
   }
 })
 
 //used for login
-api.post('/validateuser',async (c) => {
+api.post('/login',async (c) => {
   const {username, password} = await c.req.json();
   if(!username||!password) c.json({ok:false},422);
   const res = await validateUser(c,username,password);
@@ -65,14 +66,21 @@ api.post('/validateuser',async (c) => {
   const token = await jwt.sign( res.data , c.env.jwtoken, { expiresIn: '1h' });
   if(!token) return c.json({ok:false},401);
   setCookie(c, 'token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
+    httpOnly: false,
+    secure: true,//change to true when deploying
+    sameSite: 'None', 
     path: '/',
-    expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
-    maxAge: 3600, // 1 hour
+    maxAge: 34560000, // 1 hour 
   });
+  c.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your frontend URL
+  c.header('Access-Control-Allow-Credentials', 'true');
   return c.json({ok:true, token });
+});
+
+api.post('/logout',async (c) => {
+  const deletedCookie = deleteCookie(c, 'token');
+  if (!deletedCookie) return c.json({ok:false },400)
+  return c.json({ok:true, deleteCookie });
 });
 
 //done
