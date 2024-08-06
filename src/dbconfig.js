@@ -9,12 +9,14 @@ const insertUser = async (c,username,pass) => {
             console.log('prob');
             return false;
         }
+        const chkusr = validateUser(c,username,pass);
+        if (chkusr.ok) return false;
         const db = drizzle(c.env.DB);
         const hash = bcrypt.hashSync(pass, 8);
-        const usr = await db.insert(user).values({username:username,password:hash}).returning();
-        await c.env.kv.put(username, true);
+        const usr = await db.insert(user).values({username:username,password:hash}).returning({id:user.id,username:user.username});
+        c.env.kv.put(username, true);
         if (!usr) return false;
-        return true;
+        return usr;
     }catch(e){
         console.log("err insertUser: "+e);
     }
@@ -26,7 +28,14 @@ const validateUser = async (c,username,pass) => {
         const usr = await db.select({pass:user.password}).from(user).where(eq(user.username,username)).limit(1);
         if(usr.length<1) return false;
         const ok = await bcrypt.compare(pass,usr[0].pass);
-        return ok;
+        if(!ok) return false;
+        return {
+            ok,
+            data:{
+                id:usr[0].id,
+                username:usr[0].username
+            }
+        };
     }catch(e){
         console.log("err validateUser: "+e);
     }
