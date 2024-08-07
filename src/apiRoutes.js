@@ -49,8 +49,11 @@ api.get('validatetoken',async (c) => {
   try {
     const user = await jwt.verify(token, c.env.jwtoken);
     const data = jwt.decode(token)
-    if (!user) return  c.json({ ok:false, message: 'Invalid token' }, 401);
-    return c.json({ ok:true, data:data.payload });
+    if (!user) {
+      deleteCookie(c, 'token');
+      return  c.json({ ok:false, message: 'Invalid token' }, 401);
+    }
+    return c.json({ ok:true, data:data.payload,token });
   } catch (error) {
     return c.json({ ok:false, message: 'Server Side Error',error }, 500);
   }
@@ -116,10 +119,15 @@ api.patch('/todo',async (c) => {
 
 //checked
 api.get('/todo',async (c) => {
+try {
   const username = c.req.query('username');
+  console.log('username:  '+username);
   const res = await getTodos(c,username);
   if (!res) return c.json({ok:false, data:res},400)
   return c.json({ok:true, data:res});
+} catch (error) {
+  console.log(error);
+}
 });
 
 export default api;

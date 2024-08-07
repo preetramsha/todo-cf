@@ -59,7 +59,7 @@ const insertTodo = async (c,username,des) => {
         if(!uid) return false;
         const todo = await db.insert(todos).values({desc:des,user_id:uid[0].id}).returning();
         if (!todo) return false;
-        return true;
+        return todo;
     } catch (e) {
         console.log("err addTodo:"+e);
     }

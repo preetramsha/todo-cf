@@ -8,6 +8,9 @@ app.use(cors({
     credentials: true
 }));
 
+//check token middlewear
+
+
 app.route('/api',api);
 
 export default app;
