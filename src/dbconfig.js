@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { todos, user } from './db/schema.js';
 import bcrypt from "bcryptjs";
-import { eq,and } from 'drizzle-orm';
+import { eq,and, sql } from 'drizzle-orm';
 
 const insertUser = async (c,username,pass) => {
     try{
@@ -21,7 +21,20 @@ const insertUser = async (c,username,pass) => {
         console.log("err insertUser: "+e);
     }
 }
-
+const toggleCompeleted = async (c,username,todoid) => {
+    try {
+        const db = drizzle(c.env.DB);
+        const uid = await db.select({id:user.id}).from(user).where(eq(user.username,username)).limit(1);
+        if(!uid) return false;
+        const updres = await db.update(todos).set({completed:sql`CASE WHEN ${todos.completed} = 1 THEN 0 ELSE 1 END`}).where(and(eq(todos.user_id,uid[0].id),eq(todos.id,todoid))).returning({completed:todos.completed});
+        if (updres.length<1) return false;
+        if(!updres) return false;
+        return updres;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+}
 const validateUser = async (c,username,pass) => {
     try{
         const db = drizzle(c.env.DB);
@@ -39,6 +52,7 @@ const validateUser = async (c,username,pass) => {
         };
     }catch(e){
         console.log("err validateUser: "+e);
+        return false;
     }
 }
 
@@ -48,7 +62,8 @@ const isUsernameAvailable = async (c,username) => {
         if (!value) return true;
         return false;
     }catch(e){
-        console.log("err isUsernameAvailable",e)
+        console.log("err isUsernameAvailable",e);
+        return false;
     }
 }
 
@@ -59,9 +74,12 @@ const insertTodo = async (c,username,des) => {
         if(!uid) return false;
         const todo = await db.insert(todos).values({desc:des,user_id:uid[0].id}).returning();
         if (!todo) return false;
+        const upduser = await db.update(user).set({n_todos: sql `${user.n_todos} + 1`}).where(eq(user.username,username));
+        if(!upduser) return false;
         return todo;
     } catch (e) {
         console.log("err addTodo:"+e);
+        return false;
     }
 }
 const getTodos = async (c,username) => {
@@ -73,6 +91,7 @@ const getTodos = async (c,username) => {
         return res;
     } catch (e) {
         console.log("err getTodos:"+e);
+        return false;
     }
 }
 const delTodo = async (c,username,todoid) => {
@@ -81,9 +100,12 @@ const delTodo = async (c,username,todoid) => {
         const uid = await db.select({id:user.id}).from(user).where(eq(user.username,username)).limit(1);
         const delres = await db.delete(todos).where(and(eq(todos.id,todoid),eq(todos.user_id,uid[0].id))).returning();
         if(!delres) return false;
+        const upduser = await db.update(user).set(sql `${user.n_todos} - 1`).where(eq(user.username,username));
+        if(!upduser) return false;
         return true;
     } catch (e) {
         console.log("err delTodo:"+e);
+        return false;
     }
 }
 const updTodo = async (c,username,desc,todoid) => {
@@ -95,6 +117,7 @@ const updTodo = async (c,username,desc,todoid) => {
         return updres;
     } catch (e) {
         console.log("err updTodo:"+e);
+        return false;
     }
 }
 
@@ -110,6 +133,7 @@ const deleteUser = async (c,username,password) => {
         return true;
     } catch (e) {
         console.log("err deleteUser:"+e);
+        return false;
     }
 }
 
@@ -122,4 +146,5 @@ export{
     delTodo,
     updTodo,
     deleteUser,
+    toggleCompeleted
 }

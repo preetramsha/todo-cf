@@ -7,7 +7,8 @@ import {
   delTodo,
   updTodo,
   getTodos,
-  deleteUser
+  deleteUser,
+  toggleCompeleted
 } from './dbconfig.js';
 import {
   getCookie,
@@ -73,7 +74,7 @@ api.post('/login',async (c) => {
     secure: true,//change to true when deploying
     sameSite: 'None', 
     path: '/',
-    maxAge: 34560000, // 1 hour 
+    maxAge: 3600, // 1 hour 
   });
   c.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your frontend URL
   c.header('Access-Control-Allow-Credentials', 'true');
@@ -97,7 +98,7 @@ api.get('/isusernameavailable',async (c) => {
 api.post('/todo',async (c) => {
   const {username, desc} = await c.req.json();
   const res = await insertTodo(c,username,desc);
-  if (!res) return c.json({ok:false, data:res},400);
+  if (!res) return c.json({ok:false},400);
   return c.json({ok:true, data:res});
 });
 
@@ -105,7 +106,7 @@ api.post('/todo',async (c) => {
 api.delete('/todo',async (c) => {
   const {username, tid} = await c.req.json();
   const res = await delTodo(c,username,tid);
-  if (!res) return c.json({ok:false, data:res},400);
+  if (!res) return c.json({ok:false},400);
   return c.json({ok:true});
 });
 
@@ -113,21 +114,29 @@ api.delete('/todo',async (c) => {
 api.patch('/todo',async (c) => {
   const {username, desc, tid} = await c.req.json();
   const res = await updTodo(c,username,desc,tid);
-  if (!res) return c.json({ok:false, data:res},400);
+  if (!res) return c.json({ok:false},400);
+  return c.json({ok:true,data:res});
+});
+
+//done
+api.patch('/todo/status',async (c) => {
+  const {username, tid} = await c.req.json();
+  const res = await toggleCompeleted(c,username,tid);
+  if (!res) return c.json({ok:false},400);
   return c.json({ok:true,data:res});
 });
 
 //checked
 api.get('/todo',async (c) => {
-try {
-  const username = c.req.query('username');
-  console.log('username:  '+username);
-  const res = await getTodos(c,username);
-  if (!res) return c.json({ok:false, data:res},400)
-  return c.json({ok:true, data:res});
-} catch (error) {
-  console.log(error);
-}
+  try {
+    const username = c.req.query('username');
+    console.log('username:  '+username);
+    const res = await getTodos(c,username);
+    if (!res) return c.json({ok:false},400)
+    return c.json({ok:true, data:res});
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 export default api;
