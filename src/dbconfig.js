@@ -100,7 +100,7 @@ const delTodo = async (c,username,todoid) => {
         const uid = await db.select({id:user.id}).from(user).where(eq(user.username,username)).limit(1);
         const delres = await db.delete(todos).where(and(eq(todos.id,todoid),eq(todos.user_id,uid[0].id))).returning();
         if(!delres) return false;
-        const upduser = await db.update(user).set(sql `${user.n_todos} - 1`).where(eq(user.username,username));
+        const upduser = await db.update(user).set({n_todos: sql `${user.n_todos} - 1`}).where(eq(user.username,username));
         if(!upduser) return false;
         return true;
     } catch (e) {
