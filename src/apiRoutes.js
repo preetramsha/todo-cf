@@ -76,7 +76,7 @@ api.post('/login',async (c) => {
     path: '/',
     maxAge: 3600, // 1 hour 
   });
-  c.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your frontend URL
+  c.header('Access-Control-Allow-Origin', 'https://next-cloudflare-todo.pages.dev'); // Replace with your frontend URL
   c.header('Access-Control-Allow-Credentials', 'true');
   return c.json({ok:true, token });
 });
